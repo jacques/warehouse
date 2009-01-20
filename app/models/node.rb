@@ -131,22 +131,22 @@ class Node
   end
 
   def unified_diff_for(old_rev, new_rev, diff_path)
-    old_rev  = find_revision old_rev, diff_path
-    new_rev  = find_revision new_rev, diff_path
-    sorted   = check_revisions(old_rev, new_rev)
+    old_path = old_rev.node_created_path(diff_path).sub(/^\//, '')
+    old_rev = find_revision old_rev, diff_path
+    new_rev = find_revision new_rev, diff_path
+    sorted = check_revisions(old_rev, new_rev)
     old_root = find_root_for_revision(sorted[0], diff_path)
     new_root = find_root_for_revision(sorted[1], diff_path)
-    
-    differ = Svn::Fs::FileDiff.new(old_root, diff_path, new_root, diff_path)
-
+    differ = Svn::Fs::FileDiff.new(old_root, old_path, new_root, diff_path)
     if differ.binary?
       ''
     else
-      old = "#{diff_path} (revision #{old_root.node_created_rev(diff_path)})"
+      old = "#{old_path} (revision #{old_root.node_created_rev(old_path)})"
       cur = "#{diff_path} (revision #{new_root.node_created_rev(diff_path)})"
       differ.unified(old, cur)
     end
   end
+
   
   def find_root_for_revision(rev, diff_path)
     return rev           if rev.respond_to?(:node_prop)
